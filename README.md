@@ -4,7 +4,7 @@ Este projeto de Trabalho de Conclusão de Curso (TCC) tem como objetivo comparar
 
 ## Dataset
 
-**Kuzushiji-MNIST** é um substituto drop-in para o dataset MNIST (28x28 grayscale, 70000 imagens). Como o MNIST é restrito a 10 classes, 10 caracteres do Hiragana foram escolhido para representar as classes desse conjunto.
+**Kuzushiji-MNIST** é um substituto drop-in para o conjunto de dados MNIST (28x28 grayscale, 70000 imagens). Como o MNIST é restrito a 10 classes, 10 caracteres do Hiragana foram escolhido para representar as classes desse conjunto.
 
 **Kuzushiji-49** possui 49 classes (28x28 grayscale, 270912 imagens) e é conjunto de dados desbalanceado com os 49 caracteres do Hiragana.
 
