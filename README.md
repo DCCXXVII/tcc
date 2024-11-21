@@ -1,14 +1,16 @@
+## Projeto
+
+Este projeto de Trabalho de Conclusão de Curso (TCC) tem como objetivo comparar diferentes modelos de aprendizado profundo aplicados a conjuntos de dados de caracteres japoneses cursivos manuscritos, como redes neurais convolucionais (CNNs), redes neurais residuais (RNNs) e *autoencoders*.
+
 ## Dataset
 
-**Kuzushiji-MNIST** is a drop-in replacement for the MNIST dataset (28x28 grayscale, 70,000 images), provided in the original MNIST format as well as a NumPy format. Since MNIST restricts us to 10 classes, we chose one character to represent each of the 10 rows of Hiragana when creating Kuzushiji-MNIST.
+**Kuzushiji-MNIST** é um substituto drop-in para o dataset MNIST (28x28 grayscale, 70000 imagens). Como o MNIST é restrito a 10 classes, 10 caracteres do Hiragana foram escolhido para representar as classes desse conjunto.
 
-**Kuzushiji-49**, as the name suggests, has 49 classes (28x28 grayscale, 270,912 images), is a much larger, but imbalanced dataset containing 48 Hiragana characters and one Hiragana iteration mark.
-
-**Kuzushiji-Kanji** is an imbalanced dataset with a total of 3,832 Kanji characters (64x64 grayscale, 140,424 images), ranging from 1,766 examples to only a single example per class.
+**Kuzushiji-49** possui 49 classes (28x28 grayscale, 270912 imagens) e é conjunto de dados desbalanceado com os 49 caracteres do Hiragana.
 
 <p align="center">
   <img src="images/kmnist_examples.png">
-  The 10 classes of Kuzushiji-MNIST, with the first column showing each character's modern hiragana counterpart.
+  As 10 classes do Kuzushiji-MNIST, sendo que a primeira coluna mostra a representação moderna do caractere de cada linha.
 </p>
 
 ## License
