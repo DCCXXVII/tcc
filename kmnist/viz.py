@@ -7,7 +7,7 @@ fontsize = 50
 font = ImageFont.truetype('kmnist/font/NotoSansJP-VariableFont_wght.ttf', fontsize, encoding='utf-8')
 
 # Mapeamento dos caracteres e seus índices (classes)
-unicode_map = {index: char for index, codepoint, char in pd.read_csv('kmnist/kmnist_classmap.csv').values}
+unicode_map = {index: char for index, codepoint, char in pd.read_csv('kmnist/data/kmnist_classmap.csv').values}
 train_imgs = np.load('kmnist/data/kmnist-train-imgs.npz')["arr_0"]
 train_labels = np.load('kmnist/data/kmnist-train-labels.npz')["arr_0"]
 print(train_imgs.shape)
