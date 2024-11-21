@@ -10,7 +10,7 @@ Este projeto de Trabalho de Conclusão de Curso (TCC) tem como objetivo comparar
 
 <p align="center">
   <img src="images/kmnist_examples.png">
-  As 10 classes do Kuzushiji-MNIST, sendo que a primeira coluna mostra a representação moderna do caractere de cada linha.
+  As 10 classes do Kuzushiji-MNIST, sendo que a primeira coluna mostra a representação moderna do caractere.
 </p>
 
 ## License
