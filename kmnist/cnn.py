@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -168,6 +169,11 @@ def train_model(model, batch_size, patience, n_epochs):
         
     # load the last checkpoint with the best model
     model.load_state_dict(torch.load('checkpoint.pt', weights_only=True))
+    
+    if os.path.exists('checkpoint.pt'):
+        os.remove('checkpoint.pt')
+    else:
+        print("File does not exist.")
 
     return  model, avg_train_losses, avg_valid_losses
 
