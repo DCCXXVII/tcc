@@ -1,4 +1,5 @@
 import os
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
@@ -7,6 +8,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.data.sampler import SubsetRandomSampler
+from torchvision import datasets, transforms
 from sklearn.metrics import classification_report, roc_auc_score, confusion_matrix, accuracy_score
 from early_stopping_pytorch import EarlyStopping
 
@@ -17,6 +19,7 @@ if torch.cuda.is_available():
 else:
     print("No GPU available. Training will run on CPU.")
 
+
 # Parâmetros da CNN
 img_rows, img_cols = 28, 28
 num_classes = 10
@@ -24,11 +27,10 @@ batch_size = 128
 epochs = 50
 patience = 10
 
-# Carregamento e pré-processamento dos dados
-def load(f):
-    return np.load(f)['arr_0']
+def load_kmnist_data():
+    def load(f):
+        return np.load(f)['arr_0']
 
-def create_datasets(batch_size):
     x_train = load('kmnist/data/kmnist-train-imgs.npz')
     x_test = load('kmnist/data/kmnist-test-imgs.npz')
     y_train = load('kmnist/data/kmnist-train-labels.npz')
@@ -37,7 +39,7 @@ def create_datasets(batch_size):
     x_train = x_train.astype('float32') / 255.0
     x_test = x_test.astype('float32') / 255.0
 
-    x_train = np.expand_dims(x_train, axis=1)
+    x_train = np.expand_dims(x_train, axis=1)  # Adiciona canal extra
     x_test = np.expand_dims(x_test, axis=1)
 
     y_train = torch.tensor(y_train, dtype=torch.long)
@@ -46,54 +48,115 @@ def create_datasets(batch_size):
     x_train = torch.tensor(x_train, dtype=torch.float32)
     x_test = torch.tensor(x_test, dtype=torch.float32)
 
-    train_dataset = TensorDataset(x_train, y_train)
-    test_dataset = TensorDataset(x_test, y_test)
+    return x_train, y_train, x_test, y_test
 
-    # Porcentagem do conjunto de treino a ser utilizado para validação
-    valid_size = 0.2
+def create_datasets(batch_size, dataset_name="mnist"):
+    """
+    Cria os conjuntos de dados para MNIST ou Kuzushiji-MNIST.
 
-    # Obtendo os índices para validação
-    num_train = len(train_dataset)
-    indices = list(range(num_train))
-    np.random.shuffle(indices)
-    split = int(np.floor(valid_size * num_train))
-    train_idx, valid_idx = indices[split:], indices[:split]
-    
-    # Sampler para obter os batches de treino e validação
-    train_sampler = SubsetRandomSampler(train_idx)
-    valid_sampler = SubsetRandomSampler(valid_idx)
-    
-    train_loader = DataLoader(train_dataset,
-                              batch_size=batch_size,
-                              sampler=train_sampler,
-                              num_workers=0)
-    
-    valid_loader = DataLoader(train_dataset,
-                              batch_size=batch_size,
-                              sampler=valid_sampler,
-                              num_workers=0)
-    
-    test_loader = DataLoader(test_dataset,
-                             batch_size=batch_size,
-                             num_workers=0)
-    
+    Parâmetros:
+        dataset_name: "mnist" ou "kmnist"
+    """
+
+    if dataset_name.lower() == "mnist":
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.1307,), (0.3081,))  # Normalização padrão para MNIST
+        ])
+
+        train_dataset = datasets.MNIST(root="./data", train=True, download=True, transform=transform)
+        test_dataset = datasets.MNIST(root="./data", train=False, download=True, transform=transform)
+
+        # Porcentagem do conjunto de treino a ser utilizado para validação
+        valid_size = 0.2
+
+        # Obtendo os índices para validação
+        num_train = len(train_dataset)
+        indices = list(range(num_train))
+        np.random.shuffle(indices)
+        split = int(np.floor(valid_size * num_train))
+        train_idx, valid_idx = indices[split:], indices[:split]
+        
+        # Sampler para obter os batches de treino e validação
+        train_sampler = SubsetRandomSampler(train_idx)
+        valid_sampler = SubsetRandomSampler(valid_idx)
+        
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=0)
+        valid_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=valid_sampler, num_workers=0)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
+
+    elif dataset_name.lower() == "kmnist":
+        x_train, y_train, x_test, y_test = load_kmnist_data()
+
+        train_dataset = TensorDataset(x_train, y_train)
+        test_dataset = TensorDataset(x_test, y_test)
+
+        # Porcentagem do conjunto de treino a ser utilizado para validação
+        valid_size = 0.2
+
+        # Obtendo os índices para validação
+        num_train = len(train_dataset)
+        indices = list(range(num_train))
+        np.random.shuffle(indices)
+        split = int(np.floor(valid_size * num_train))
+        train_idx, valid_idx = indices[split:], indices[:split]
+        
+        # Sampler para obter os batches de treino e validação
+        train_sampler = SubsetRandomSampler(train_idx)
+        valid_sampler = SubsetRandomSampler(valid_idx)
+        
+        train_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=0)
+        valid_loader = DataLoader(train_dataset, batch_size=batch_size, sampler=valid_sampler, num_workers=0)
+        test_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=0)
+
+    else:
+        raise ValueError("Parâmetro deve ser 'mnist' ou 'kmnist'.")
+
     return train_loader, test_loader, valid_loader
 
-train_loader, test_loader, valid_loader = create_datasets(batch_size)
+# Exemplo de uso:
+train_loader, test_loader, valid_loader = create_datasets(batch_size, dataset_name="kmnist")
 
-# Definição da CNN
+# Definição da CNN 1
 class CNN(nn.Module):
+    def __init__(self, num_classes=10):
+        super(CNN, self).__init__()
+
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.dropout1 = nn.Dropout(0.25)
+
+        self.fc1 = nn.Linear(64 * 7 * 7, 128)
+        self.dropout2 = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(128, num_classes)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = self.pool(x)  # (64, 14, 14)
+        x = F.relu(self.conv2(x))
+        x = self.pool(x)  # (64, 7, 7)
+        x = self.dropout1(x)
+
+        x = torch.flatten(x, start_dim=1) 
+        x = F.relu(self.fc1(x))
+        x = self.dropout2(x)
+        x = self.fc2(x)  
+        return x
+
+# Definição da CNN 2
+class CNN2(nn.Module):
     def __init__(self, num_classes=10):
         super(CNN, self).__init__()
 
         # Primeira camada convolucional: 1 input channel, 32 output channels, 3x3 kernel, stride 1, padding 1
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1)
+        
+        # Segunda camada convolucional: 32 input channels, 64 output channels, 3x3 kernel, stride 1, padding 1
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
 
         # Max pooling layer: 2x2 window, stride 2
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-
-        # Segunda camada convolucional: 32 input channels, 64 output channels, 3x3 kernel, stride 1, padding 1
-        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
 
         # Fully connected layer: 64*7*7 input features (after two 2x2 poolings), 10 output features (num_classes)
         self.fc1 = nn.Linear(64 * 7 * 7, num_classes) # 28/4 = 7 (a dimensão da imagem 28x28 é dividida pela metade duas vezes)
@@ -106,8 +169,12 @@ class CNN(nn.Module):
         x = x.reshape(x.shape[0], -1) # Flatten
         x = self.fc1(x)
         return x
+    
+# Definição da CNN 3
+
 
 # Chamada do modelo construído
+t0 = time.time()
 model = CNN(num_classes).to(device)
 
 # Otimizador e critério a ser utilizado no cálculo da loss
@@ -218,3 +285,7 @@ print(f"Accuracy: {accuracy:.3f}")
 conf_matrix = confusion_matrix(y_true, y_pred)
 print("Matriz de confusão:")
 print(conf_matrix)
+
+run_time = time.time() - t0
+print("Example run in %.3f s" % run_time)
+plt.show()
